@@ -1,3 +1,4 @@
+import com.app.exceptions.InvalidPolicyException;
 import com.app.model.AwsIAMRolePolicy;
 import com.app.model.PolicyDocument;
 import com.app.model.Statement;
@@ -81,24 +82,19 @@ public class PolicyValidatorTest {
     }
 
     @Test
-    public void should_return_false_if_policy_is_null() {
-        boolean result = PolicyValidator.validate(null);
-
-        assertFalse(result);
+    public void should_throw_NullPointerException_if_policy_is_null () {
+        assertThrows(NullPointerException.class, () -> PolicyValidator.validate(null));
     }
 
     @Test
     public void should_return_true_if_resource_contains_multiple_asterisks() {
-        // Arrange
         List<Statement> statementsWithMultipleAsterisks = List.of(
                 new Statement("Sid1", "Allow", List.of("Action1"), "***")
         );
         AwsIAMRolePolicy policyWithMultipleAsterisks = new AwsIAMRolePolicy("Policy4", new PolicyDocument("2012-10-17", statementsWithMultipleAsterisks));
 
-        // Act
         boolean result = PolicyValidator.validate(policyWithMultipleAsterisks);
 
-        // Assert
         assertTrue(result);
     }
 
@@ -130,4 +126,33 @@ public class PolicyValidatorTest {
                 () -> assertFalse(PolicyValidator.validate(mixedPolicy), "Mixed statements should return false")
         );
     }
+
+    @Test
+    public void should_throw_InvalidPolicyException_if_policy_name_is_too_long() {
+        String invalidPolicyName = "TooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyNameTooLongPolicyName";
+        AwsIAMRolePolicy invalidPolicy = new AwsIAMRolePolicy(invalidPolicyName, null);
+
+        assertThrows(InvalidPolicyException.class, () -> PolicyValidator.validate(invalidPolicy));
+    }
+
+    @Test
+    public void should_throw_InvalidPolicyException_if_policy_name_does_not_match_regex() {
+        String invalidPolicyName = "InvalidPolicy@Name!";
+        List<Statement> emptyStatementList = Collections.emptyList();
+        PolicyDocument policyDocument = new PolicyDocument("2012-10-17", emptyStatementList);
+        AwsIAMRolePolicy invalidPolicy = new AwsIAMRolePolicy(invalidPolicyName, policyDocument);
+
+        assertThrows(InvalidPolicyException.class, () -> PolicyValidator.validate(invalidPolicy));
+    }
+
+    @Test
+    public void should_throw_InvalidPolicyException_if_effect_field_has_invalid_value() {
+        String invalidEffect = "InvalidEffect";
+        Statement invalidStatement = new Statement("Sid1", invalidEffect, List.of("Action1"), "Resource1");
+        PolicyDocument policyDocument = new PolicyDocument("2012-10-17", List.of(invalidStatement));
+        AwsIAMRolePolicy invalidPolicy = new AwsIAMRolePolicy("PolicyName", policyDocument);
+
+        assertThrows(InvalidPolicyException.class, () -> PolicyValidator.validate(invalidPolicy));
+    }
+
 }

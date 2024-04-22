@@ -1,5 +1,6 @@
 package com.app;
 
+import com.app.exceptions.InvalidPolicyException;
 import com.app.model.AwsIAMRolePolicy;
 import com.app.validator.PolicyValidator;
 import com.google.gson.Gson;
@@ -17,13 +18,17 @@ public class App {
         try (FileReader fileReader = new FileReader(filename)) {
             AwsIAMRolePolicy awsIAMRolePolicy = gson.fromJson(fileReader, AwsIAMRolePolicy.class);
             System.out.println(awsIAMRolePolicy);
-            System.out.println("Policy validation result: " + PolicyValidator.validate(awsIAMRolePolicy));
+            System.out.println("Resource field validation result: " + PolicyValidator.validate(awsIAMRolePolicy));
+        } catch (InvalidPolicyException e){
+            System.out.println(e.getMessage());
+        } catch (NullPointerException e){
+            System.out.println(e.getMessage());
         } catch (FileNotFoundException e) {
-            throw new IllegalStateException(e);
+            System.out.println(e.getMessage());
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            System.out.println(e.getMessage());
         } catch (Exception e) {
-            throw new IllegalStateException(e);
+            System.out.println(e.getMessage());
         }
     }
 }
