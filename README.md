@@ -15,4 +15,7 @@ Navigate to the directory with the application:
 
 ### **After compilation, run the application**
 `java -jar .\target\Remitly-jar-with-dependencies.jar
+
+### **To run tests use**
+`mvn test`
 `
